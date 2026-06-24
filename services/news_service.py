@@ -5,9 +5,15 @@ from utils.config import NEWS_API_KEY
 
 class NewsService:
     def __init__(self):
-        self.client = NewsApiClient(api_key=NEWS_API_KEY)
+        if NEWS_API_KEY:
+            self.client = NewsApiClient(api_key=NEWS_API_KEY)
+        else:
+            self.client = None
 
     def get_news(self, company):
+        if not self.client:
+            print(f"NewsAPI key is missing. Skipping news fetch for {company}.")
+            return []
         try:
             # Strip exchange suffixes like .NS / .BO from search query for NewsAPI
             clean_query = company
