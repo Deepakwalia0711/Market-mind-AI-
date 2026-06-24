@@ -5,6 +5,7 @@ from agents.decision_agent import DecisionAgent
 from agents.historical_agent import HistoricalAgent
 from agents.news_agent import NewsAgent
 from agents.technical_agent import TechnicalAgent
+from agents.moneycontrol_agent import MoneycontrolAgent
 from services.stock_service import StockService
 
 app = FastAPI()
@@ -21,6 +22,7 @@ stock_service = StockService()
 historical = HistoricalAgent()
 technical = TechnicalAgent()
 news = NewsAgent()
+moneycontrol = MoneycontrolAgent()
 decision = DecisionAgent()
 
 
