@@ -25,8 +25,10 @@ decision = DecisionAgent()
 
 
 @app.get("/")
+@app.head("/")
 def root():
     return {"status": "healthy", "message": "MarketMind AI API is running"}
+
 
 
 
