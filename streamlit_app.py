@@ -107,7 +107,7 @@ def render_live_price(resolved_symbol, initial_prices):
 
 
 # Header
-st.title("🧠 MarketMind AI Dashboard")
+st.title("🧠 Walia Mind AI Dashboard")
 st.subheader("Multi-agent stock analysis powered by AI Agents")
 
 # Sidebar search
