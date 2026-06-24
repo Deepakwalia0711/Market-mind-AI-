@@ -17,7 +17,7 @@ from services.stock_service import StockService
 
 # Set Streamlit Page Config
 st.set_page_config(
-    page_title="MarketMind AI Dashboard",
+    page_title="Walia Mind AI Dashboard",
     page_icon="📈",
     layout="wide",
     initial_sidebar_state="expanded",
