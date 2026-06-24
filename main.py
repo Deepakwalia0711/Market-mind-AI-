@@ -24,6 +24,12 @@ news = NewsAgent()
 decision = DecisionAgent()
 
 
+@app.get("/")
+def root():
+    return {"status": "healthy", "message": "MarketMind AI API is running"}
+
+
+
 def _chart_payload(data):
     if data.empty:
         return []
