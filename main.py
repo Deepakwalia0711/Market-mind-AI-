@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+import yfinance as yf
 
 from agents.decision_agent import DecisionAgent
 from agents.historical_agent import HistoricalAgent
@@ -8,7 +9,7 @@ from agents.technical_agent import TechnicalAgent
 from agents.moneycontrol_agent import MoneycontrolAgent
 from services.stock_service import StockService
 
-app = FastAPI()
+app = FastAPI(title="MarketMind AI", version="2.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -29,25 +30,24 @@ decision = DecisionAgent()
 @app.get("/")
 @app.head("/")
 def root():
-    return {"status": "healthy", "message": "MarketMind AI API is running"}
+    return {"status": "healthy", "message": "MarketMind AI API v2 is running"}
 
 
-
-
-def _chart_payload(data):
-    if data.empty:
-        return []
-
-    return [
-        {
-            "date": index.strftime("%Y-%m-%d"),
-            "open": round(float(row["Open"]), 2),
-            "high": round(float(row["High"]), 2),
-            "low": round(float(row["Low"]), 2),
-            "close": round(float(row["Close"]), 2),
-        }
-        for index, row in data.iterrows()
-    ]
+def _get_exchange_prices(resolved_symbol: str, data) -> dict:
+    """Fetch NSE + BSE prices or fall back to default close."""
+    prices = {}
+    if resolved_symbol.endswith((".NS", ".BO")):
+        base_symbol = resolved_symbol[:-3]
+        for suffix, key in [(".NS", "NSE"), (".BO", "BSE")]:
+            try:
+                ticker_data = yf.Ticker(f"{base_symbol}{suffix}").history(period="1d")
+                if not ticker_data.empty:
+                    prices[key] = round(float(ticker_data["Close"].iloc[-1]), 2)
+            except Exception:
+                pass
+    if not prices:
+        prices["Default"] = round(float(data["Close"].iloc[-1]), 2)
+    return prices
 
 
 @app.get("/analyze/{symbol}")
@@ -55,56 +55,36 @@ def analyze(symbol: str):
     data, resolved_symbol = stock_service.get_stock_data(symbol)
     if data.empty:
         return {"error": "Stock not found"}
+
+    # Run all agents
     history_result = historical.analyze(data)
     technical_result = technical.analyze(data)
-    news_result = news.analyze(symbol)
+    news_result = news.analyze(resolved_symbol)
+    mc_result = moneycontrol.analyze(resolved_symbol)   # ← NOW WIRED UP
     final_decision = decision.analyze(
         history_result,
         technical_result,
         news_result,
+        moneycontrol=mc_result,
     )
 
-    candle_result = {"sentiment": "Positive", "pattern": "Bullish Engulfing"}
-    final_result = final_decision
-    ai_summary = "Bullish trend with positive sentiment..."
+    prices = _get_exchange_prices(resolved_symbol, data)
 
-    prices = {}
-    if resolved_symbol.endswith((".NS", ".BO")):
-        import yfinance as yf
-        base_symbol = resolved_symbol[:-3]
-        try:
-            nse_data = yf.Ticker(f"{base_symbol}.NS").history(period="1d")
-            if not nse_data.empty:
-                prices["NSE"] = round(float(nse_data["Close"].iloc[-1]), 2)
-        except Exception:
-            pass
-        try:
-            bse_data = yf.Ticker(f"{base_symbol}.BO").history(period="1d")
-            if not bse_data.empty:
-                prices["BSE"] = round(float(bse_data["Close"].iloc[-1]), 2)
-        except Exception:
-            pass
-
-    if not prices:
-        prices["Default"] = round(float(data["Close"].iloc[-1]), 2)
+    # Strip internal series from technical result (not JSON-serializable cleanly)
+    technical_clean = {k: v for k, v in technical_result.items() if not k.startswith("_")}
 
     return {
         "stock": symbol,
         "resolved_symbol": resolved_symbol,
         "prices": prices,
         "history": history_result,
-        "technical": technical_result,
+        "technical": technical_clean,
         "news": news_result,
-        "candle": candle_result,
-        "decision": final_result,
-        "agent_scores": {
-            "Historical": 75,
-            "Technical": 85,
-            "News": 70,
-            "Candlestick": 80,
-            "Risk": 65
-        },
-        "ai_summary": ai_summary
+        "moneycontrol": mc_result,
+        "decision": final_decision["decision"],
+        "confidence": final_decision["confidence"],
+        "reasons": final_decision["reasons"],
+        "agent_scores": final_decision["agent_scores"],  # ← DYNAMIC, NOT HARDCODED
     }
 
 
@@ -113,12 +93,21 @@ def get_chart_data(symbol: str):
     data, resolved_symbol = stock_service.get_stock_data(symbol)
     if data.empty:
         return {"error": "Stock not found"}
+
+    # Include SMA overlays
+    close = data["Close"]
+    sma20 = close.rolling(20).mean().round(2).tolist()
+    sma50 = close.rolling(50).mean().round(2).tolist() if len(data) >= 50 else []
+
     return {
         "dates": [str(x.date()) for x in data.index],
-        "open": data["Open"].tolist(),
-        "high": data["High"].tolist(),
-        "low": data["Low"].tolist(),
-        "close": data["Close"].tolist()
+        "open": [round(float(v), 2) for v in data["Open"]],
+        "high": [round(float(v), 2) for v in data["High"]],
+        "low": [round(float(v), 2) for v in data["Low"]],
+        "close": [round(float(v), 2) for v in close],
+        "volume": [int(v) for v in data["Volume"]],
+        "sma20": sma20,
+        "sma50": sma50,
     }
 
 
@@ -127,31 +116,5 @@ def get_price(symbol: str):
     data, resolved_symbol = stock_service.get_stock_data(symbol)
     if data.empty:
         return {"error": "Stock not found"}
-    
-    prices = {}
-    if resolved_symbol.endswith((".NS", ".BO")):
-        import yfinance as yf
-        base_symbol = resolved_symbol[:-3]
-        try:
-            nse_data = yf.Ticker(f"{base_symbol}.NS").history(period="1d")
-            if not nse_data.empty:
-                prices["NSE"] = round(float(nse_data["Close"].iloc[-1]), 2)
-        except Exception:
-            pass
-        try:
-            bse_data = yf.Ticker(f"{base_symbol}.BO").history(period="1d")
-            if not bse_data.empty:
-                prices["BSE"] = round(float(bse_data["Close"].iloc[-1]), 2)
-        except Exception:
-            pass
-
-    if not prices:
-        prices["Default"] = round(float(data["Close"].iloc[-1]), 2)
-
-    return {
-        "prices": prices,
-        "resolved_symbol": resolved_symbol
-    }
-
-
-
+    prices = _get_exchange_prices(resolved_symbol, data)
+    return {"prices": prices, "resolved_symbol": resolved_symbol}

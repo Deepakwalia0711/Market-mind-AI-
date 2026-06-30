@@ -1,3 +1,4 @@
+import re
 from services.moneycontrol_service import MoneycontrolService
 
 class MoneycontrolAgent:
@@ -22,7 +23,6 @@ class MoneycontrolAgent:
             count = len(items)
             if "strength" in k_lower:
                 # E.g. "Strengths (13)" -> extract 13 if possible, else use count of parsed items
-                import re
                 m = re.search(r'\d+', key)
                 strength_count = int(m.group(0)) if m else count
             elif "weakness" in k_lower:
