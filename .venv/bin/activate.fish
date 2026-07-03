@@ -33,7 +33,7 @@ end
 # Unset irrelevant variables.
 deactivate nondestructive
 
-set -gx VIRTUAL_ENV /home/deepak-walia/Pictures/cursor/marketmind-ai/backend/.venv
+set -gx VIRTUAL_ENV '/home/deepak-walia/Pictures/Deepak_Project/Market analysis /marketmind-ai/backend/.venv'
 
 set -gx _OLD_VIRTUAL_PATH $PATH
 set -gx PATH "$VIRTUAL_ENV/"bin $PATH

@@ -6,7 +6,7 @@ import pandas as pd
 import yfinance as yf
 
 
-def _safe_history(symbol, period="6mo", max_retries=3):
+def _safe_history(symbol, period="2y", max_retries=3):
     """Fetch yfinance history with retry + exponential backoff for rate limits."""
     for attempt in range(max_retries):
         try:

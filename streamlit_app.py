@@ -13,6 +13,14 @@ from agents.historical_agent import HistoricalAgent
 from agents.moneycontrol_agent import MoneycontrolAgent
 from agents.news_agent import NewsAgent
 from agents.technical_agent import TechnicalAgent
+from agents.fundamental_agent import FundamentalAgent
+from agents.sentiment_agent import SentimentAgent
+from agents.insider_agent import InsiderAgent
+from agents.sector_agent import SectorAgent
+from agents.risk_agent import RiskAgent
+from agents.backtesting_agent import BacktestingAgent
+from agents.prediction_agent import PredictionAgent
+from agents.pattern_agent import PatternAgent
 from services.stock_service import StockService
 
 # ── Page config ────────────────────────────────────────────────────────────────
@@ -26,77 +34,113 @@ st.set_page_config(
 # ── Global CSS ─────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;500;600;700&display=swap');
 
 html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
+h1, h2, h3, h4, h5, h6 { font-family: 'Outfit', sans-serif !important; }
 
-.stApp { background: #060d1a; }
-
-/* Cards */
-.card {
-    background: #0d1f35;
-    border: 1px solid #1e3a5f;
-    border-radius: 14px;
-    padding: 1.4rem 1.6rem;
-    margin-bottom: 1rem;
+/* Background & Core */
+.stApp { 
+    background: radial-gradient(circle at top, #0b172a 0%, #040914 100%); 
 }
 
-/* Decision badge */
+/* Premium Glassmorphism Cards */
+.card {
+    background: rgba(13, 31, 53, 0.4);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    padding: 1.6rem;
+    margin-bottom: 1.2rem;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px 0 rgba(56, 189, 248, 0.1);
+    border: 1px solid rgba(56, 189, 248, 0.2);
+}
+
+/* Decision badge with Glow */
 .badge {
     display: inline-block;
-    padding: 0.5rem 1.6rem;
+    padding: 0.5rem 1.8rem;
     border-radius: 999px;
-    font-size: 1.1rem;
+    font-size: 1.15rem;
     font-weight: 800;
-    letter-spacing: 2px;
+    font-family: 'Outfit', sans-serif;
+    letter-spacing: 2.5px;
     text-transform: uppercase;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
 }
-.badge-buy  { background: rgba(16,185,129,.18); color:#10b981; border:1.5px solid #10b981; }
-.badge-hold { background: rgba(245,158,11,.18);  color:#f59e0b; border:1.5px solid #f59e0b; }
-.badge-sell { background: rgba(239,68,68,.18);   color:#ef4444; border:1.5px solid #ef4444; }
+.badge-buy  { background: rgba(16,185,129,.15); color:#10b981; border:1.5px solid rgba(16,185,129,.6); box-shadow: 0 0 15px rgba(16,185,129, 0.3); }
+.badge-hold { background: rgba(245,158,11,.15);  color:#f59e0b; border:1.5px solid rgba(245,158,11,.6); box-shadow: 0 0 15px rgba(245,158,11, 0.3); }
+.badge-sell { background: rgba(239,68,68,.15);   color:#ef4444; border:1.5px solid rgba(239,68,68,.6); box-shadow: 0 0 15px rgba(239,68,68, 0.3); }
 
 /* Metric tiles */
 .metric-tile {
-    background: #0a1628;
-    border: 1px solid #1e3a5f;
-    border-radius: 10px;
-    padding: 0.9rem 1.1rem;
+    background: linear-gradient(145deg, rgba(15, 23, 42, 0.6), rgba(11, 17, 32, 0.8));
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    padding: 1.1rem;
     text-align: center;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 4px 15px rgba(0,0,0,0.2);
+    transition: all 0.2s ease-in-out;
 }
-.metric-tile .label { font-size: 0.72rem; color:#64748b; text-transform:uppercase; letter-spacing:1px; }
-.metric-tile .value { font-size: 1.3rem; font-weight:700; color:#e2e8f0; margin-top:0.2rem; }
-.metric-tile .value.green { color:#10b981; }
-.metric-tile .value.red   { color:#ef4444; }
-.metric-tile .value.amber { color:#f59e0b; }
+.metric-tile:hover {
+    border-color: rgba(56, 189, 248, 0.3);
+    transform: translateY(-2px);
+}
+.metric-tile .label { font-size: 0.75rem; color:#94a3b8; text-transform:uppercase; letter-spacing:1.5px; font-weight:600; }
+.metric-tile .value { font-size: 1.35rem; font-weight:800; font-family:'Outfit', sans-serif; color:#f8fafc; margin-top:0.4rem; }
+.metric-tile .value.green { color:#34d399; text-shadow: 0 0 10px rgba(52,211,153,0.3); }
+.metric-tile .value.red   { color:#f87171; text-shadow: 0 0 10px rgba(248,113,113,0.3); }
+.metric-tile .value.amber { color:#fbbf24; text-shadow: 0 0 10px rgba(251,191,36,0.3); }
 
-/* Progress bar */
-.conf-bar-bg { background:#1e3a5f; border-radius:999px; height:10px; margin-top:0.5rem; }
-.conf-bar-fill { height:10px; border-radius:999px; background: linear-gradient(90deg,#3b82f6,#10b981); }
+/* Progress bar (Score Builder) */
+.conf-bar-bg { background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255,255,255,0.05); border-radius:999px; height:12px; margin-top:0.6rem; overflow:hidden; }
+.conf-bar-fill { height:100%; border-radius:999px; background: linear-gradient(90deg, #0ea5e9, #10b981, #f59e0b); background-size: 200% 100%; animation: shimmer 3s infinite linear; }
+@keyframes shimmer { 0% {background-position: 100% 0;} 100% {background-position: -100% 0;} }
 
 /* News item */
-.news-item { border-left: 3px solid #3b82f6; padding: 0.6rem 0.9rem; margin-bottom: 0.8rem; background:#0a1628; border-radius:0 8px 8px 0; }
-.news-item a { color:#93c5fd; text-decoration:none; font-weight:600; }
-.news-item a:hover { text-decoration:underline; }
-.news-meta { font-size:0.72rem; color:#475569; margin-top:0.2rem; }
+.news-item { 
+    border-left: 3px solid #38bdf8; 
+    padding: 0.8rem 1rem; 
+    margin-bottom: 0.8rem; 
+    background: rgba(15, 23, 42, 0.4); 
+    border-radius: 0 8px 8px 0; 
+    transition: background 0.2s;
+}
+.news-item:hover { background: rgba(15, 23, 42, 0.8); border-left-color: #818cf8; }
+.news-item a { color:#e0f2fe; text-decoration:none; font-weight:600; font-size: 0.95rem; line-height: 1.4; }
+.news-item a:hover { color: #38bdf8; }
+.news-meta { font-size:0.75rem; color:#64748b; margin-top:0.4rem; }
 
-/* SWOT */
-.swot-box { border-radius:10px; padding:0.9rem; margin-bottom:0.6rem; }
-.swot-s { background:rgba(16,185,129,.1); border:1px solid rgba(16,185,129,.3); }
-.swot-w { background:rgba(239,68,68,.1);  border:1px solid rgba(239,68,68,.3);  }
-.swot-o { background:rgba(59,130,246,.1); border:1px solid rgba(59,130,246,.3); }
-.swot-t { background:rgba(245,158,11,.1); border:1px solid rgba(245,158,11,.3); }
-.swot-label { font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; }
-.swot-s .swot-label { color:#10b981; }
-.swot-w .swot-label { color:#ef4444; }
-.swot-o .swot-label { color:#3b82f6; }
-.swot-t .swot-label { color:#f59e0b; }
-.swot-count { font-size:2rem; font-weight:800; }
+/* SWOT styling */
+.swot-box { border-radius:12px; padding:1.2rem; margin-bottom:0.8rem; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+.swot-s { background:linear-gradient(145deg, rgba(16,185,129,.1), rgba(4,9,20,0.4)); border:1px solid rgba(16,185,129,.2); }
+.swot-w { background:linear-gradient(145deg, rgba(239,68,68,.1), rgba(4,9,20,0.4));  border:1px solid rgba(239,68,68,.2);  }
+.swot-o { background:linear-gradient(145deg, rgba(59,130,246,.1), rgba(4,9,20,0.4)); border:1px solid rgba(59,130,246,.2); }
+.swot-t { background:linear-gradient(145deg, rgba(245,158,11,.1), rgba(4,9,20,0.4)); border:1px solid rgba(245,158,11,.2); }
+.swot-label { font-size:0.8rem; font-weight:800; text-transform:uppercase; letter-spacing:1.5px; font-family:'Outfit'; }
+.swot-s .swot-label { color:#34d399; }
+.swot-w .swot-label { color:#f87171; }
+.swot-o .swot-label { color:#60a5fa; }
+.swot-t .swot-label { color:#fbbf24; }
+.swot-count { font-size:2.4rem; font-weight:800; font-family:'Outfit'; color:#f8fafc; line-height:1.2; }
 
 /* Section headers */
-h2.section { font-size:1.1rem; font-weight:700; color:#94a3b8;
-             text-transform:uppercase; letter-spacing:2px; margin:1.4rem 0 0.8rem; }
+h2.section { font-size:1.15rem; font-family:'Outfit', sans-serif; font-weight:800; color:#cbd5e1;
+             text-transform:uppercase; letter-spacing:3px; margin:2rem 0 1rem; 
+             display: flex; align-items: center; gap: 8px;}
+h2.section::before { content: ""; display: inline-block; width: 8px; height: 8px; background: #38bdf8; border-radius: 50%; box-shadow: 0 0 10px #38bdf8; }
 
-div[data-testid="stMetricValue"] { font-size:1.6rem; font-weight:700; color:#38bdf8; }
+/* Streamlit Native overrides */
+div[data-testid="stMetricValue"] { font-size:1.8rem !important; font-weight:800 !important; font-family:'Outfit' !important; color:#38bdf8 !important; }
+div[data-testid="stMetricLabel"] { font-weight: 600 !important; color: #94a3b8 !important; letter-spacing: 1px; text-transform: uppercase; font-size: 0.8rem !important; }
+hr { border-color: rgba(255,255,255,0.05); margin: 2rem 0; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -110,13 +154,25 @@ def load_services():
         TechnicalAgent(),
         NewsAgent(),
         MoneycontrolAgent(),
+        FundamentalAgent(),
+        SentimentAgent(),
+        InsiderAgent(),
+        SectorAgent(),
+        RiskAgent(),
+        BacktestingAgent(),
+        PredictionAgent(),
+        PatternAgent(),
         DecisionAgent(),
     )
 
-stock_service, historical, technical, news, moneycontrol_agent, decision = load_services()
+stock_service, historical, technical, news, moneycontrol_agent, fundamental, sentiment, insider, sector, risk, backtesting, prediction, pattern, decision = load_services()
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
+def metric_html(label, value, cls=""):
+    return f"""<div class="metric-tile"><div class="label">{label}</div>
+    <div class="value {cls}">{value}</div></div>"""
+
 def color_val(v: str):
     v_lower = v.lower()
     if any(w in v_lower for w in ["bull", "positive", "strong"]):
@@ -226,33 +282,61 @@ def build_candlestick(data, tech_result):
     return fig
 
 
-# ── Agent score bar chart ──────────────────────────────────────────────────────
-def build_score_chart(agent_scores: dict):
-    agents = list(agent_scores.keys())
-    scores = list(agent_scores.values())
-    bar_colors = [
-        "#10b981" if s >= 63 else "#ef4444" if s <= 40 else "#f59e0b"
-        for s in scores
-    ]
-    fig = go.Figure(go.Bar(
-        x=agents, y=scores,
-        marker_color=bar_colors,
-        text=[f"{s}" for s in scores],
+# ── Agent score waterfall chart ────────────────────────────────────────────────
+def build_waterfall_chart(agent_scores, final_score):
+    weights = {
+        "Historical": 0.05,
+        "Technical": 0.20,
+        "News": 0.10,
+        "Moneycontrol": 0.10,
+        "Fundamental": 0.20,
+        "Sentiment": 0.10,
+        "Insider": 0.05,
+        "Sector": 0.10,
+    }
+    
+    x = ["Base"]
+    y = [0]
+    measure = ["relative"]
+    text = ["0"]
+    
+    for k, w in weights.items():
+        if k in agent_scores:
+            val = agent_scores[k] * w
+            x.append(k)
+            y.append(val)
+            measure.append("relative")
+            text.append(f"+{val:.1f}")
+            
+    if "Risk Penalty" in agent_scores:
+        x.append("Risk Penalty")
+        y.append(agent_scores["Risk Penalty"])
+        measure.append("relative")
+        text.append(f"{agent_scores['Risk Penalty']:.1f}")
+        
+    x.append("Total AI Score")
+    y.append(final_score)
+    measure.append("total")
+    text.append(f"{final_score:.1f}")
+    
+    fig = go.Figure(go.Waterfall(
+        orientation="v",
+        measure=measure,
+        x=x,
+        y=y,
+        text=text,
         textposition="outside",
-        textfont=dict(color="#e2e8f0", size=13),
+        decreasing={"marker": {"color": "#ef4444"}},
+        increasing={"marker": {"color": "#10b981"}},
+        totals={"marker": {"color": "#38bdf8"}}
     ))
-    fig.add_hline(y=63, line_dash="dot", line_color="#10b981", annotation_text="Buy zone", annotation_font_color="#10b981")
-    fig.add_hline(y=40, line_dash="dot", line_color="#ef4444", annotation_text="Sell zone", annotation_font_color="#ef4444")
     fig.update_layout(
         template="plotly_dark",
         paper_bgcolor="#0d1f35",
         plot_bgcolor="#0d1f35",
-        yaxis=dict(range=[0, 105], gridcolor="#1e3a5f"),
-        xaxis=dict(gridcolor="#1e3a5f"),
-        margin=dict(l=10, r=10, t=10, b=10),
+        margin=dict(l=10, r=10, t=30, b=10),
         height=340,
-        font=dict(family="Inter"),
-        showlegend=False,
+        font=dict(family="Inter")
     )
     return fig
 
@@ -260,12 +344,15 @@ def build_score_chart(agent_scores: dict):
 # ── HEADER ─────────────────────────────────────────────────────────────────────
 st.markdown("""
 <div style="text-align:center; padding: 1.5rem 0 0.5rem;">
+  <div style="display: inline-block; padding: 6px 16px; margin-bottom: 16px; border-radius: 24px; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); color: #7dd3fc; font-size: 0.85rem; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; box-shadow: 0 4px 12px rgba(56, 189, 248, 0.15); backdrop-filter: blur(4px);">
+    ✨ Crafted by <span style="color: #e0f2fe; font-weight: 800;">Mr. Walia</span>
+  </div>
   <h1 style="font-size:2.8rem; font-weight:800; background:linear-gradient(135deg,#60a5fa,#34d399);
              -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin:0;">
     📈 MarketMind AI
   </h1>
-  <p style="color:#475569; margin:0.4rem 0 0; font-size:1rem;">
-    Multi-agent analysis · yFinance · Moneycontrol · NewsAPI
+  <p style="color:#64748b; margin:0.4rem 0 0; font-size:1.05rem; font-family:'Outfit', sans-serif; letter-spacing:1px; text-transform:uppercase;">
+    Advanced AI Portfolio & Market Analyst
   </p>
 </div>
 """, unsafe_allow_html=True)
@@ -278,16 +365,17 @@ with st.sidebar:
     run_btn = st.button("🚀 Run Analysis", use_container_width=True, type="primary")
 
     st.markdown("---")
-    st.markdown("**What this app does:**")
+    st.markdown("**⚡ System Capabilities**")
     st.markdown("""
-- 📊 Candlestick chart + SMA overlay
-- 📰 Live news + sentiment
-- 🏦 Moneycontrol SWOT & ratios
-- 🤖 5 AI agents → Buy / Hold / Sell
-- 💰 Live prices every 3 seconds
+- 🧠 **11-Agent AI Architecture**
+- 🔮 **Predictive ML Modeling**
+- 🛡️ **Automated Risk Assessment**
+- 📊 **Explainable AI Score Builder**
+- ⏳ **Historical Strategy Backtesting**
+- 🕯️ **Candlestick Pattern Detection**
 """)
     st.markdown("---")
-    st.caption("Data: yFinance · NewsAPI · Moneycontrol")
+    st.caption("🚀 Enterprise-Grade Investment Intelligence")
 
 
 # ── MAIN FLOW ──────────────────────────────────────────────────────────────────
@@ -308,12 +396,33 @@ if data.empty:
     st.error(f"❌ Could not find stock data for **{query}**. Try a ticker like `RELIANCE.NS` or `AAPL`.")
     st.stop()
 
-with st.spinner("🤖 Running AI agents (History · Technical · News · Moneycontrol)..."):
+with st.spinner("🤖 Running AI agents..."):
     hist_result  = historical.analyze(data)
     tech_result  = technical.analyze(data)
     news_result  = news.analyze(resolved)
     mc_result    = moneycontrol_agent.analyze(resolved)
-    final        = decision.analyze(hist_result, tech_result, news_result, moneycontrol=mc_result)
+    
+    # New Agents
+    fund_result  = fundamental.analyze(resolved)
+    sentiment_result = sentiment.analyze(resolved)
+    insider_result = insider.analyze(resolved)
+    sector_result = sector.analyze(resolved)
+    risk_result = risk.analyze(resolved)
+    backtest_result = backtesting.analyze(data)
+    pred_result = prediction.analyze(data)
+    pattern_result = pattern.analyze(data)
+
+    final = decision.analyze(
+        hist_result,
+        tech_result,
+        news_result,
+        moneycontrol=mc_result,
+        fundamentals=fund_result,
+        sentiment=sentiment_result,
+        insider=insider_result,
+        sector=sector_result,
+        risk=risk_result
+    )
 
 agent_scores   = final["agent_scores"]
 dec            = final["decision"]
@@ -334,7 +443,7 @@ with col_dec:
     <div class="card" style="text-align:center;">
       <p style="color:#64748b; font-size:0.8rem; text-transform:uppercase; letter-spacing:2px; margin:0 0 0.6rem;">AI Recommendation</p>
       <span class="badge badge-{badge_cls}">{dec}</span>
-      <p style="color:#94a3b8; margin:0.8rem 0 0.2rem; font-size:0.85rem;">Confidence Score</p>
+      <p style="color:#94a3b8; margin:0.8rem 0 0.2rem; font-size:0.85rem;">Total AI Score</p>
       <p style="font-size:2rem; font-weight:800; color:#e2e8f0; margin:0;">{confidence:.1f}<span style="font-size:1rem;">/100</span></p>
       <div class="conf-bar-bg">
         <div class="conf-bar-fill" style="width:{min(confidence,100):.0f}%;"></div>
@@ -345,6 +454,21 @@ with col_dec:
 with col_price:
     st.markdown('<h2 class="section">💰 Live Prices (auto-refresh every 3s)</h2>', unsafe_allow_html=True)
     live_price_widget(resolved, initial_prices)
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# ROW 1.5 — Prediction & Risk Meter
+# ═══════════════════════════════════════════════════════════════════════════════
+st.markdown('<h2 class="section">🔮 AI Price Prediction & Risk Level</h2>', unsafe_allow_html=True)
+p1, p2, p3, p4 = st.columns(4)
+
+if pred_result:
+    p1.markdown(metric_html("Tomorrow Range", f"₹{pred_result['tomorrow_low']} - {pred_result['tomorrow_high']}", ""), unsafe_allow_html=True)
+    p2.markdown(metric_html("Next Week Range", f"₹{pred_result['next_week_low']} - {pred_result['next_week_high']}", ""), unsafe_allow_html=True)
+    p3.markdown(metric_html("Prediction Probability", pred_result['probability'], "green"), unsafe_allow_html=True)
+
+risk_level = risk_result.get("signal", "Unknown") if risk_result else "Unknown"
+risk_color = "green" if "Low" in risk_level else "amber" if "Moderate" in risk_level else "red"
+p4.markdown(metric_html("AI Risk Meter", risk_level, risk_color), unsafe_allow_html=True)
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # ROW 2 — Metrics Strip
@@ -359,11 +483,7 @@ sma_sig = tech_result.get("sma_signal", "Neutral")
 macd_trend = tech_result.get("macd_trend", "Neutral")
 news_sent = news_result.get("sentiment", "Neutral")
 
-def metric_html(label, value, cls=""):
-    return f"""<div class="metric-tile"><div class="label">{label}</div>
-    <div class="value {cls}">{value}</div></div>"""
-
-m1.markdown(metric_html("6M Trend", trend, color_val(trend)), unsafe_allow_html=True)
+m1.markdown(metric_html("2Y Trend", trend, color_val(trend)), unsafe_allow_html=True)
 m2.markdown(metric_html("Change", f"{change_pct:+.1f}%", "green" if change_pct >= 0 else "red"), unsafe_allow_html=True)
 m3.markdown(metric_html("RSI-14", f"{rsi:.1f}", "red" if rsi > 70 else "green" if rsi < 30 else "amber"), unsafe_allow_html=True)
 m4.markdown(metric_html("MACD", macd_trend, color_val(macd_trend)), unsafe_allow_html=True)
@@ -375,14 +495,17 @@ m5.markdown(metric_html("News", news_sent, color_val(news_sent)), unsafe_allow_h
 chart_col, score_col = st.columns([3, 2], gap="large")
 
 with chart_col:
-    st.markdown('<h2 class="section">📈 Candlestick Chart (6 Months)</h2>', unsafe_allow_html=True)
+    st.markdown('<h2 class="section">📈 Candlestick Chart (2 Years)</h2>', unsafe_allow_html=True)
+    if pattern_result and pattern_result.get("pattern") != "None":
+        pat_color = "#10b981" if "Bullish" in pattern_result.get("signal", "") else "#ef4444"
+        st.markdown(f"**Candlestick Pattern Detected**: <span style='color:{pat_color}'>{pattern_result['pattern']}</span> (Confidence: {pattern_result['confidence']})", unsafe_allow_html=True)
     st.plotly_chart(build_candlestick(data, tech_result), use_container_width=True)
 
 with score_col:
-    st.markdown('<h2 class="section">🤖 Agent Confidence Scores</h2>', unsafe_allow_html=True)
-    st.plotly_chart(build_score_chart(agent_scores), use_container_width=True)
+    st.markdown('<h2 class="section">🤖 Explainable AI Score Builder</h2>', unsafe_allow_html=True)
+    st.plotly_chart(build_waterfall_chart(agent_scores, confidence), use_container_width=True)
 
-    st.markdown('<h2 class="section">🧠 Decision Reasons</h2>', unsafe_allow_html=True)
+    st.markdown('<h2 class="section">🧠 Why this decision?</h2>', unsafe_allow_html=True)
     for r in reasons:
         icon = "🟢" if any(w in r.lower() for w in ["bull", "positive", "healthy", "oversold", "strength", "above"]) else \
                "🔴" if any(w in r.lower() for w in ["bear", "negative", "overbought", "caution", "below", "risk"]) else "🟡"
@@ -505,9 +628,45 @@ with nc2:
     else:
         st.info("No recent news articles found. Check your NewsAPI key in `.env`.")
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# ROW 7 — Backtesting (New Feature)
+# ═══════════════════════════════════════════════════════════════════════════════
+st.markdown('<h2 class="section">⏳ Historical Strategy Backtesting (2-5 Years)</h2>', unsafe_allow_html=True)
+
+if backtest_result:
+    b_col1, b_col2, b_col3, b_col4 = st.columns(4)
+    b_col1.markdown(f"""
+    <div class="metric-tile">
+      <div class="label">Total Return</div>
+      <div class="value green">{backtest_result.get('total_return', 'N/A')}</div>
+    </div>
+    """, unsafe_allow_html=True)
+    b_col2.markdown(f"""
+    <div class="metric-tile">
+      <div class="label">Annualized</div>
+      <div class="value green">{backtest_result.get('annualized_return', 'N/A')}</div>
+    </div>
+    """, unsafe_allow_html=True)
+    b_col3.markdown(f"""
+    <div class="metric-tile">
+      <div class="label">Win Rate</div>
+      <div class="value">{backtest_result.get('win_rate', 'N/A')}</div>
+    </div>
+    """, unsafe_allow_html=True)
+    b_col4.markdown(f"""
+    <div class="metric-tile">
+      <div class="label">Max Drawdown</div>
+      <div class="value red">{backtest_result.get('max_drawdown', 'N/A')}</div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.caption(f"Strategy: {backtest_result.get('strategy', '')} | Signal: {backtest_result.get('signal', '')}")
+
 # ── Footer ─────────────────────────────────────────────────────────────────────
 st.markdown("""
-<div style="text-align:center; padding:2rem 0 1rem; color:#334155; font-size:0.8rem;">
-  MarketMind AI · Powered by yFinance · NewsAPI · Moneycontrol · Not financial advice
+<div style="text-align:center; padding:2rem 0 1rem; color:#64748b; font-size:0.85rem; font-family:'Outfit', sans-serif; letter-spacing:1px; text-transform:uppercase;">
+  MarketMind AI v2.0 · Proprietary 11-Agent Architecture · Advanced Market Intelligence<br>
+  Created by <strong>Mr. Walia</strong><br>
+  <span style="font-size:0.7rem; color:#475569;">For Informational and Research Purposes Only. Not Financial Advice.</span>
 </div>
 """, unsafe_allow_html=True)
