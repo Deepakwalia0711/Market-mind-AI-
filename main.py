@@ -162,9 +162,12 @@ def get_price(symbol: str):
     return {"prices": prices, "resolved_symbol": resolved_symbol}
 
 # Mount frontend
-frontend_path = os.path.join(os.path.dirname(__file__), "..", "frontend")
+from pathlib import Path
+frontend_path = str(Path(__file__).resolve().parent / "frontend")
 if os.path.exists(frontend_path):
     app.mount("/", StaticFiles(directory=frontend_path, html=True), name="frontend")
+else:
+    print(f"WARNING: Frontend path not found at {frontend_path}")
 
 if __name__ == "__main__":
     import uvicorn
