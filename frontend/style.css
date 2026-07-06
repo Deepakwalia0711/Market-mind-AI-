@@ -733,7 +733,13 @@ h2.section::before {
 }
 
 .row-3 {
-    grid-template-columns: 3fr 2fr;
+    grid-template-columns: 1.3fr 1fr;
+    align-items: start;
+}
+
+.row-3 > div {
+    min-width: 0;
+    width: 100%;
 }
 
 .row-news {
@@ -860,6 +866,19 @@ h2.section::before {
 /* ═══════════════════ CHARTS ═══════════════════ */
 .chart-col {
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.score-col {
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Fix for vertical alignment of headers in Row 3 specifically if needed */
+.row-3 h2.section {
+    margin-top: 0;
 }
 
 /* ═══════════════════ REASONS ═══════════════════ */
