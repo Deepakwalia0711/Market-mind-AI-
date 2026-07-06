@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MarketMind AI — Sign In</title>
+    <meta name="description" content="MarketMind AI — Enterprise-Grade AI Investment Intelligence Platform">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- ═══════════════════ AUTH SCREEN ═══════════════════ -->
+    <div id="authScreen">
+        <div class="auth-bg-orbs">
+            <div class="orb orb1"></div>
+            <div class="orb orb2"></div>
+            <div class="orb orb3"></div>
+        </div>
+
+        <div class="auth-container">
+            <!-- LEFT PANEL -->
+            <div class="auth-left">
+                <div class="auth-logo-wrap">
+                    <div class="crafted-badge">✨ Crafted by <span>Mr. Walia</span></div>
+                    <h1 class="auth-title">📈 MarketMind AI</h1>
+                    <p class="auth-subtitle">Enterprise AI Investment Intelligence</p>
+                </div>
+                <ul class="auth-features">
+                    <li><span class="feat-icon">🧠</span><span>Tomorrow's Forecast</span></li>
+                    <li><span class="feat-icon">🔮</span><span>One-Week Outlook</span></li>
+                    <li><span class="feat-icon">🚀</span><span>Grow Your Portfolio</span></li>
+                    <li><span class="feat-icon">🛡️</span><span>Smart Risk Protection</span></li>
+                    <li><span class="feat-icon">📊</span><span>Clear Buy/Sell Signals</span></li>
+                    <li><span class="feat-icon">🕯️</span><span>Spot Winning Trends</span></li>
+                </ul>
+                <p class="auth-disclaimer">For informational purposes only. Not financial advice.</p>
+            </div>
+
+            <!-- RIGHT PANEL: FORM -->
+            <div class="auth-right">
+                <div class="auth-card">
+                    <div class="auth-tabs">
+                        <button type="button" id="tabLogin" class="auth-tab active" onclick="switchTab('login')">Sign
+                            In</button>
+                        <button type="button" id="tabSignup" class="auth-tab" onclick="switchTab('signup')">Sign
+                            Up</button>
+                    </div>
+
+                    <!-- LOGIN FORM -->
+                    <form id="loginForm" class="auth-form" onsubmit="handleLogin(event)">
+                        <h2 class="form-title">Welcome back 👋</h2>
+                        <p class="form-sub">Sign in to your MarketMind AI account</p>
+                        <div class="input-group">
+                            <span class="input-icon">📧</span>
+                            <input type="email" id="loginEmail" placeholder="Email Address" required
+                                autocomplete="email">
+                        </div>
+                        <div class="input-group">
+                            <span class="input-icon">🔒</span>
+                            <input type="password" id="loginPassword" placeholder="Password" required
+                                autocomplete="current-password">
+                        </div>
+                        <p id="loginError" class="auth-error"></p>
+                        <button type="submit" class="auth-submit-btn">
+                            <span>Sign In</span> <span>→</span>
+                        </button>
+                        <p class="auth-switch">Don't have an account? <a href="#" onclick="switchTab('signup')">Create
+                                one</a></p>
+                    </form>
+
+                    <!-- SIGNUP FORM -->
+                    <form id="signupForm" class="auth-form hidden" onsubmit="handleSignup(event)">
+                        <h2 class="form-title">Create Account 🚀</h2>
+                        <p class="form-sub">Join MarketMind AI — it's free</p>
+                        <div class="input-group">
+                            <span class="input-icon">👤</span>
+                            <input type="text" id="signupName" placeholder="Full Name" required>
+                        </div>
+                        <div class="input-group">
+                            <span class="input-icon">📧</span>
+                            <input type="email" id="signupEmail" placeholder="Email Address" required>
+                        </div>
+                        <div class="input-group">
+                            <span class="input-icon">🔒</span>
+                            <input type="password" id="signupPassword" placeholder="Password (min 6 chars)" required
+                                minlength="6">
+                        </div>
+                        <div class="input-group">
+                            <span class="input-icon">🔒</span>
+                            <input type="password" id="signupConfirm" placeholder="Confirm Password" required
+                                minlength="6">
+                        </div>
+                        <p id="signupError" class="auth-error"></p>
+                        <button type="submit" class="auth-submit-btn">
+                            <span>Create Account</span> <span>→</span>
+                        </button>
+                        <p class="auth-switch">Already have an account? <a href="#" onclick="switchTab('login')">Sign
+                                In</a></p>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════ MAIN APP ═══════════════════ -->
+    <div id="appContainer" class="hidden">
+        <div class="sidebar">
+            <div class="sidebar-logo">
+                <span style="font-size:1.4rem;">📈</span>
+                <span style="font-weight:800; font-family:'Outfit';">MarketMind</span>
+            </div>
+            <h3>🔍 Stock Search</h3>
+            <input type="text" id="searchInput" placeholder="RELIANCE / HDFC / AAPL" value="RELIANCE">
+            <button id="searchBtn">🚀 Run Analysis</button>
+            <hr>
+            <p><strong>⚡ Why Choose Us?</strong></p>
+            <ul>
+                <li>🧠 Tomorrow's Forecast</li>
+                <li>🔮 One-Week Outlook</li>
+                <li>🚀 Grow Your Portfolio</li>
+                <li>🛡️ Smart Risk Protection</li>
+                <li>📊 Clear Buy/Sell Signals</li>
+                <li>🕯️ Spot Winning Trends</li>
+            </ul>
+            <hr>
+            <div class="user-info-bar">
+                <span id="userGreeting" style="font-size:0.85rem; color:#94a3b8;"></span>
+                <button id="logoutBtn" onclick="handleLogout()" class="logout-btn">Logout</button>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="header-center">
+                <div class="crafted-badge">✨ Crafted by <span>Mr. Walia</span></div>
+                <h1>📈 MarketMind AI</h1>
+                <p>Advanced AI Portfolio &amp; Market Analyst</p>
+            </div>
+
+            <div id="initialScreen" class="initial-screen">
+                <p style="font-size:4rem; margin-bottom:15px; animation: float 6s ease-in-out infinite;">📈</p>
+                <h2 style="font-size:2rem; font-family:'Outfit'; font-weight:800; margin-bottom:10px; color:#fff;">
+                    Welcome to MarketMind AI</h2>
+                <p style="font-size:1.1rem; color:var(--muted); margin-bottom:3rem;">Enter a stock name or ticker in the
+                    sidebar and click <strong>Run Analysis</strong> to begin.</p>
+
+                <div class="capabilities-grid">
+                    <div class="cap-card">
+                        <div class="cap-icon">🧠</div>
+                        <h4>Tomorrow's Forecast</h4>
+                        <p>Know exactly where your stock is heading tomorrow with high-accuracy AI predictions.</p>
+                    </div>
+                    <div class="cap-card">
+                        <div class="cap-icon">🔮</div>
+                        <h4>One-Week Outlook</h4>
+                        <p>Plan your trades effectively with precise 7-day market forecasting.</p>
+                    </div>
+                    <div class="cap-card">
+                        <div class="cap-icon">🚀</div>
+                        <h4>Grow Your Portfolio</h4>
+                        <p>Discover hidden market opportunities and maximize your stock market returns.</p>
+                    </div>
+                    <div class="cap-card">
+                        <div class="cap-icon">🛡️</div>
+                        <h4>Smart Risk Protection</h4>
+                        <p>Keep your investments safe with real-time automated risk alerts.</p>
+                    </div>
+                    <div class="cap-card">
+                        <div class="cap-icon">📊</div>
+                        <h4>Clear Buy/Sell Signals</h4>
+                        <p>Get straightforward, easy-to-understand recommendations on when to act.</p>
+                    </div>
+                    <div class="cap-card">
+                        <div class="cap-icon">🕯️</div>
+                        <h4>Spot Winning Trends</h4>
+                        <p>Automatically detect profitable market patterns before they even happen.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="loader" class="loader hidden">
+                <div class="spinner"></div>
+                <p>🤖 Running AI agents...</p>
+            </div>
+
+            <div id="dashboard" class="dashboard hidden">
+                <div class="success-msg" id="successMsg"></div>
+
+                <!-- ROW 1: Decision + Prices -->
+                <div class="row row-1">
+                    <div class="card dec-card">
+                        <p class="section-label">AI Recommendation</p>
+                        <span id="decisionBadge" class="badge">—</span>
+                        <p class="score-label">Total AI Score</p>
+                        <p class="score-val"><span id="scoreVal">0</span><span>/100</span></p>
+                        <div class="conf-bar-bg">
+                            <div id="confBarFill" class="conf-bar-fill" style="width:0%"></div>
+                        </div>
+                    </div>
+                    <div class="card prices-card">
+                        <h2 class="section">💰 Live Prices (auto-refresh 3s)</h2>
+                        <div class="metrics-row" id="livePricesRow"></div>
+                    </div>
+                </div>
+
+                <!-- ROW 1.5: Prediction & Risk -->
+                <h2 class="section">🔮 AI Price Prediction &amp; Risk Level</h2>
+                <div class="metrics-row grid-5" id="predictionRow"></div>
+
+                <!-- ROW 2: Signals -->
+                <h2 class="section">📊 Agent Signals</h2>
+                <div class="metrics-row grid-5" id="signalsRow"></div>
+
+                <!-- ROW 3: Charts -->
+                <div class="row row-3">
+                    <div class="chart-col">
+                        <h2 class="section">📈 Candlestick Chart (2 Years)</h2>
+                        <p id="patternDetected" style="font-size:0.9rem; margin-bottom:10px;"></p>
+                        <div id="candlestickChart" style="height:520px; width:100%;"></div>
+                    </div>
+                    <div class="score-col">
+                        <h2 class="section">🤖 Explainable AI Score Builder</h2>
+                        <div id="waterfallChart" style="height:340px; width:100%;"></div>
+                        <h2 class="section" style="margin-top:1.5rem;">🧠 Why this decision?</h2>
+                        <div id="reasonsList" class="reasons-list"></div>
+                    </div>
+                </div>
+
+                <!-- ROW 4: Tech Indicators -->
+                <h2 class="section">⚙️ Technical Indicators</h2>
+                <div class="metrics-row grid-4" id="techRow"></div>
+
+                <!-- ROW 5: Moneycontrol -->
+                <h2 class="section">🏦 Moneycontrol Analysis</h2>
+                <div id="mcSection" class="card"
+                    style="padding:0; background:transparent; border:none; box-shadow:none;">
+                    <div class="mc-header card">
+                        <div>
+                            <p class="mc-title" id="mcTitle"></p>
+                            <p class="mc-sector" id="mcSector"></p>
+                        </div>
+                        <div id="mcLink"></div>
+                    </div>
+                    <div class="metrics-row grid-5" id="mcMetricsRow" style="margin-top:1rem;"></div>
+                    <p style="margin-top:1rem; font-weight:700;">SWOT Analysis</p>
+                    <div class="metrics-row grid-4" id="swotRow" style="margin-top:0.5rem;"></div>
+                </div>
+
+                <!-- ROW 6: News -->
+                <h2 class="section">📰 Recent News &amp; Sentiment</h2>
+                <div class="row row-news">
+                    <div class="card center-content" id="newsSentimentCard"></div>
+                    <div class="news-list" id="newsList"></div>
+                </div>
+
+                <!-- ROW 7: Backtesting -->
+                <h2 class="section">⏳ Historical Strategy Backtesting (2-5 Years)</h2>
+                <div class="metrics-row grid-4" id="backtestRow"></div>
+                <p class="caption" id="backtestCaption"></p>
+
+                <footer>
+                    MarketMind AI v2.0 · Proprietary 11-Agent Architecture · Advanced Market Intelligence<br>
+                    Created by <strong>Mr. Walia</strong><br>
+                    <span>For Informational and Research Purposes Only. Not Financial Advice.</span>
+                </footer>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
