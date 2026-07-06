@@ -1,12 +1,22 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 import yfinance as yf
+import os
 
 from agents.decision_agent import DecisionAgent
 from agents.historical_agent import HistoricalAgent
 from agents.news_agent import NewsAgent
 from agents.technical_agent import TechnicalAgent
 from agents.moneycontrol_agent import MoneycontrolAgent
+from agents.fundamental_agent import FundamentalAgent
+from agents.sentiment_agent import SentimentAgent
+from agents.insider_agent import InsiderAgent
+from agents.sector_agent import SectorAgent
+from agents.risk_agent import RiskAgent
+from agents.backtesting_agent import BacktestingAgent
+from agents.prediction_agent import PredictionAgent
+from agents.pattern_agent import PatternAgent
 from services.stock_service import StockService
 
 app = FastAPI(title="MarketMind AI", version="2.0")
@@ -24,12 +34,20 @@ historical = HistoricalAgent()
 technical = TechnicalAgent()
 news = NewsAgent()
 moneycontrol = MoneycontrolAgent()
+fundamental = FundamentalAgent()
+sentiment = SentimentAgent()
+insider = InsiderAgent()
+sector = SectorAgent()
+risk = RiskAgent()
+backtesting = BacktestingAgent()
+prediction = PredictionAgent()
+pattern = PatternAgent()
 decision = DecisionAgent()
 
 
-@app.get("/")
-@app.head("/")
-def root():
+@app.get("/health")
+@app.head("/health")
+def health_check():
     return {"status": "healthy", "message": "MarketMind AI API v2 is running"}
 
 
@@ -60,12 +78,26 @@ def analyze(symbol: str):
     history_result = historical.analyze(data)
     technical_result = technical.analyze(data)
     news_result = news.analyze(resolved_symbol)
-    mc_result = moneycontrol.analyze(resolved_symbol)   # ← NOW WIRED UP
+    mc_result = moneycontrol.analyze(resolved_symbol)
+    fund_result = fundamental.analyze(resolved_symbol)
+    sentiment_result = sentiment.analyze(resolved_symbol)
+    insider_result = insider.analyze(resolved_symbol)
+    sector_result = sector.analyze(resolved_symbol)
+    risk_result = risk.analyze(resolved_symbol)
+    backtest_result = backtesting.analyze(data)
+    pred_result = prediction.analyze(data)
+    pattern_result = pattern.analyze(data)
+
     final_decision = decision.analyze(
         history_result,
         technical_result,
         news_result,
         moneycontrol=mc_result,
+        fundamentals=fund_result,
+        sentiment=sentiment_result,
+        insider=insider_result,
+        sector=sector_result,
+        risk=risk_result
     )
 
     prices = _get_exchange_prices(resolved_symbol, data)
@@ -84,7 +116,11 @@ def analyze(symbol: str):
         "decision": final_decision["decision"],
         "confidence": final_decision["confidence"],
         "reasons": final_decision["reasons"],
-        "agent_scores": final_decision["agent_scores"],  # ← DYNAMIC, NOT HARDCODED
+        "agent_scores": final_decision["agent_scores"],
+        "prediction": pred_result,
+        "pattern": pattern_result,
+        "backtesting": backtest_result,
+        "risk": risk_result,
     }
 
 
@@ -94,20 +130,26 @@ def get_chart_data(symbol: str):
     if data.empty:
         return {"error": "Stock not found"}
 
+    import math
+    def clean_val(v):
+        try:
+            val = float(v)
+            return None if math.isnan(val) or math.isinf(val) else round(val, 2)
+        except (ValueError, TypeError):
+            return None
+
     # Include SMA overlays
     close = data["Close"]
-    sma20 = close.rolling(20).mean().round(2).tolist()
-    sma50 = close.rolling(50).mean().round(2).tolist() if len(data) >= 50 else []
-
+    
     return {
         "dates": [str(x.date()) for x in data.index],
-        "open": [round(float(v), 2) for v in data["Open"]],
-        "high": [round(float(v), 2) for v in data["High"]],
-        "low": [round(float(v), 2) for v in data["Low"]],
-        "close": [round(float(v), 2) for v in close],
-        "volume": [int(v) for v in data["Volume"]],
-        "sma20": sma20,
-        "sma50": sma50,
+        "open": [clean_val(v) for v in data["Open"]],
+        "high": [clean_val(v) for v in data["High"]],
+        "low": [clean_val(v) for v in data["Low"]],
+        "close": [clean_val(v) for v in close],
+        "volume": [int(v) if not math.isnan(float(v)) else 0 for v in data["Volume"]],
+        "sma20": [clean_val(v) for v in close.rolling(20).mean()],
+        "sma50": [clean_val(v) for v in close.rolling(50).mean()] if len(data) >= 50 else [],
     }
 
 
@@ -118,3 +160,12 @@ def get_price(symbol: str):
         return {"error": "Stock not found"}
     prices = _get_exchange_prices(resolved_symbol, data)
     return {"prices": prices, "resolved_symbol": resolved_symbol}
+
+# Mount frontend
+frontend_path = os.path.join(os.path.dirname(__file__), "..", "frontend")
+if os.path.exists(frontend_path):
+    app.mount("/", StaticFiles(directory=frontend_path, html=True), name="frontend")
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)

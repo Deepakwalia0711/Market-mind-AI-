@@ -459,9 +459,10 @@ with col_price:
 # ROW 1.5 — Prediction & Risk Meter
 # ═══════════════════════════════════════════════════════════════════════════════
 st.markdown('<h2 class="section">🔮 AI Price Prediction & Risk Level</h2>', unsafe_allow_html=True)
-p1, p2, p3, p4 = st.columns(4)
+p0, p1, p2, p3, p4 = st.columns(5)
 
 if pred_result:
+    p0.markdown(metric_html("Today Range", f"₹{pred_result.get('today_low', 'N/A')} - {pred_result.get('today_high', 'N/A')}", ""), unsafe_allow_html=True)
     p1.markdown(metric_html("Tomorrow Range", f"₹{pred_result['tomorrow_low']} - {pred_result['tomorrow_high']}", ""), unsafe_allow_html=True)
     p2.markdown(metric_html("Next Week Range", f"₹{pred_result['next_week_low']} - {pred_result['next_week_high']}", ""), unsafe_allow_html=True)
     p3.markdown(metric_html("Prediction Probability", pred_result['probability'], "green"), unsafe_allow_html=True)

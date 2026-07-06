@@ -17,6 +17,7 @@ class PredictionAgent:
         sma10 = float(data['Close'].rolling(10).mean().iloc[-1])
         trend_mult = 1.002 if close > sma10 else 0.998
         
+        today_base = close
         tomorrow_base = close * trend_mult
         week_base = close * (trend_mult ** 5)
         
@@ -25,6 +26,8 @@ class PredictionAgent:
         prob = int(min(95, max(60, 60 + (trend_strength * 1000))))
         
         return {
+            "today_low": round(today_base - (tomorrow_range * 0.5), 2),
+            "today_high": round(today_base + (tomorrow_range * 0.5), 2),
             "tomorrow_low": round(tomorrow_base - tomorrow_range, 2),
             "tomorrow_high": round(tomorrow_base + tomorrow_range, 2),
             "next_week_low": round(week_base - week_range, 2),
