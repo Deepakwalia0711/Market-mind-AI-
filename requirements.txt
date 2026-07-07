@@ -6,6 +6,4 @@ newsapi-python
 python-dotenv
 xgboost
 scikit-learn
-transformers
-torch
 joblib
