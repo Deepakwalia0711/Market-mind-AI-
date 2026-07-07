@@ -9,7 +9,7 @@ class PatternAgent:
         prev = data.iloc[-2]
         
         o, h, l, c = latest['Open'], latest['High'], latest['Low'], latest['Close']
-        po, ph, pl, pc = prev['Open'], prev['High'], prev['Low'], prev['Close']
+        po, _, _, pc = prev['Open'], prev['High'], prev['Low'], prev['Close']
         
         body_size = abs(c - o)
         full_size = h - l

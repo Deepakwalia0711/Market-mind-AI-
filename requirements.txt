@@ -4,5 +4,8 @@ yfinance
 pandas
 newsapi-python
 python-dotenv
-streamlit
-plotly
+xgboost
+scikit-learn
+transformers
+torch
+joblib

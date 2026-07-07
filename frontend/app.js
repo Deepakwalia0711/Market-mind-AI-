@@ -341,38 +341,95 @@ function renderDashboard(data, chartData) {
 
 /* ═══════════════════ CHARTS ═══════════════════ */
 
+let lwChart = null;
 function renderCandlestick(data, tech) {
-    const traces = [{
-        type: 'candlestick',
-        name: 'Price',
-        x: data.dates,
-        open: data.open,
-        high: data.high,
-        low: data.low,
-        close: data.close,
-        increasing: { line: { color: '#10b981' }, fillcolor: 'rgba(16,185,129,0.3)' },
-        decreasing: { line: { color: '#ef4444' }, fillcolor: 'rgba(239,68,68,0.3)' },
-    }];
+    const container = document.getElementById('candlestickChart');
+    
+    if (lwChart) {
+        lwChart.remove();
+        lwChart = null;
+    }
+    container.innerHTML = '';
 
-    if (data.sma20?.length) traces.push({
-        x: data.dates, y: data.sma20, type: 'scatter', mode: 'lines',
-        name: 'SMA 20', line: { color: '#f59e0b', width: 1.5, dash: 'dot' }
-    });
-    if (data.sma50?.length) traces.push({
-        x: data.dates, y: data.sma50, type: 'scatter', mode: 'lines',
-        name: 'SMA 50', line: { color: '#a78bfa', width: 1.5, dash: 'dot' }
+    lwChart = LightweightCharts.createChart(container, {
+        layout: {
+            background: { type: 'solid', color: '#060d1a' },
+            textColor: '#94a3b8',
+        },
+        grid: {
+            vertLines: { color: '#1e3a5f' },
+            horzLines: { color: '#1e3a5f' },
+        },
+        crosshair: {
+            mode: LightweightCharts.CrosshairMode.Normal,
+        },
+        rightPriceScale: {
+            borderColor: '#1e3a5f',
+        },
+        timeScale: {
+            borderColor: '#1e3a5f',
+            timeVisible: false,
+        },
     });
 
-    Plotly.newPlot('candlestickChart', traces, {
-        template: 'plotly_dark',
-        paper_bgcolor: '#060d1a',
-        plot_bgcolor: '#060d1a',
-        margin: { l: 45, r: 15, t: 15, b: 40 },
-        xaxis: { rangeslider: { visible: false }, gridcolor: '#1e3a5f' },
-        yaxis: { gridcolor: '#1e3a5f' },
-        font: { family: 'Inter', color: '#94a3b8' },
-        legend: { orientation: 'h', yanchor: 'bottom', y: 1.02, bgcolor: 'rgba(0,0,0,0)' }
-    }, { responsive: true });
+    const candlestickSeries = lwChart.addCandlestickSeries({
+        upColor: '#10b981',
+        downColor: '#ef4444',
+        borderVisible: false,
+        wickUpColor: '#10b981',
+        wickDownColor: '#ef4444',
+    });
+
+    const chartData = [];
+    for (let i = 0; i < data.dates.length; i++) {
+        if (!data.open[i] || !data.high[i] || !data.low[i] || !data.close[i]) continue;
+        chartData.push({
+            time: data.dates[i],
+            open: data.open[i],
+            high: data.high[i],
+            low: data.low[i],
+            close: data.close[i],
+        });
+    }
+    candlestickSeries.setData(chartData);
+
+    if (data.sma20 && data.sma20.length > 0) {
+        const sma20Series = lwChart.addLineSeries({
+            color: '#f59e0b',
+            lineWidth: 2,
+            lineStyle: 1, // Dashed
+        });
+        const sma20Data = [];
+        for (let i = 0; i < data.dates.length; i++) {
+            if (data.sma20[i]) {
+                sma20Data.push({ time: data.dates[i], value: data.sma20[i] });
+            }
+        }
+        sma20Series.setData(sma20Data);
+    }
+
+    if (data.sma50 && data.sma50.length > 0) {
+        const sma50Series = lwChart.addLineSeries({
+            color: '#a78bfa',
+            lineWidth: 2,
+            lineStyle: 1, // Dashed
+        });
+        const sma50Data = [];
+        for (let i = 0; i < data.dates.length; i++) {
+            if (data.sma50[i]) {
+                sma50Data.push({ time: data.dates[i], value: data.sma50[i] });
+            }
+        }
+        sma50Series.setData(sma50Data);
+    }
+    
+    lwChart.timeScale().fitContent();
+
+    new ResizeObserver(entries => {
+        if (entries.length === 0 || entries[0].target !== container) { return; }
+        const newRect = entries[0].contentRect;
+        lwChart.applyOptions({ height: newRect.height, width: newRect.width });
+    }).observe(container);
 }
 
 function renderWaterfall(agentScores, finalScore) {
